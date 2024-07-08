@@ -1,0 +1,37 @@
+version: '3.4'
+services:
+  eth-node-besu:
+    hostname: eth-node-besu
+    build:
+      context: .
+      dockerfile: Dockerfile.besu
+    networks:
+      - eth-node-network
+    volumes:
+      - ./token:/var/lib/besu/jwt
+    ports:
+      - "8551:8551" # Communication with consensus clients
+      - "8545:8545" # Default port for JSON-RPC over HTTP
+      - "13001:13001" # Prometheus metrics endpoint
+      - "30303:30303/tcp" # Default for peer-to-peer Ethereum network traffic
+      - "30303:30303/udp"
+
+  eth-node-teku:
+    hostname: eth-node-teku
+    build:
+      context: .
+      dockerfile: Dockerfile.teku
+    networks:
+      - eth-node-network
+    volumes:
+      - ./token:/var/lib/teku/jwt
+    ports:
+      - "5051:5051" # REST API access for monitoring and management
+      - "9000:9000/tcp" # Default for P2P communication
+      - "9000:9000/udp"
+    depends_on:
+      - eth-node-besu
+
+networks:
+  eth-node-network:
+    driver: bridge

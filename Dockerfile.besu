@@ -1,0 +1,39 @@
+# Use an intermediary image to set permissions
+FROM alpine:latest AS intermediary
+
+COPY entrypoint-besu.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+
+# Use the official Hyperledger Besu image as the base image
+FROM hyperledger/besu:latest
+
+# Switch to root user to perform system updates
+USER root
+
+# Update package lists and install necessary packages
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    ncat \
+    nano \
+    # Add more packages as needed
+    && rm -rf /var/lib/apt/lists/*
+
+# Switch back to besu user
+#USER besu
+
+# Copy the jwtsecret.hex file to the appropriate location
+COPY token/jwtsecret.hex /var/lib/besu/jwt/jwtsecret.hex
+
+# Copy the entrypoint script from the intermediary stage
+COPY --from=intermediary /entrypoint.sh /entrypoint.sh
+
+# Expose the ports
+EXPOSE 8545
+EXPOSE 49250
+EXPOSE 13001
+EXPOSE 30303
+
+# Set the entrypoint script as the entrypoint
+ENTRYPOINT ["/entrypoint.sh"]

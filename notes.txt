@@ -1,0 +1,224 @@
+./besu \
+  --sync-mode=X_SNAP           \
+  --data-storage-format=BONSAI \
+  --rpc-http-enabled=true      \
+  --rpc-http-host="0.0.0.0"    \
+  --rpc-ws-enabled=true        \
+  --rpc-ws-host="0.0.0.0"      \
+  --host-allowlist=192.168.0.26,127.0.0.1,localhost        \
+  --engine-host-allowlist=192.168.0.26,127.0.0.1,localhost \
+  --engine-rpc-enabled         \
+  --engine-jwt-secret=jwtsecret.hex
+  
+./teku \
+  --ee-endpoint=http://localhost:8551          \
+  --ee-jwt-secret-file=jwtsecret.hex \
+  --metrics-enabled=true                       \
+  --rest-api-enabled=true
+
+
+
+curl -X POST http://eth-node-besu:8551 \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer 4e216ec38ec39bea2cc637728b0bf0bb96439a8ce5e125b4c2b83a5518afdf4f" \
+     -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
+
+
+------------------------------------------------------------
+
+
+./besu \
+  --sync-mode=X_SNAP           \
+  --data-storage-format=BONSAI \
+  --rpc-http-enabled=true      \
+  --rpc-http-host="0.0.0.0"    \
+  --rpc-ws-enabled=true        \
+  --rpc-ws-host="0.0.0.0"      \
+  --host-allowlist=192.168.0.26,127.0.0.1,localhost        \
+  --engine-host-allowlist=192.168.0.26,127.0.0.1,localhost \
+  --engine-rpc-enabled         \
+  --engine-jwt-secret=jwtsecret.hex
+  
+./teku \
+  --ee-endpoint=http://localhost:8551          \
+  --ee-jwt-secret-file=jwtsecret.hex \
+  --metrics-enabled=true                       \
+  --rest-api-enabled=true
+
+
+docker network create eth-network
+
+
+docker run --network eth-node-network \
+  -p 8545:8545 \
+  -p 8546:8546 \
+  -p 8551:8551 \
+  -v /home/lsilveira/Projects/eth-node/token/jwtsecret.hex:/var/lib/besu/jwtsecret.hex \
+  --name besu-node \
+  --entrypoint besu \
+  hyperledger/besu:latest \
+  --sync-mode=X_SNAP \
+  --data-storage-format=BONSAI \
+  --rpc-http-enabled=true \
+  --rpc-http-host="0.0.0.0" \
+  --rpc-ws-enabled=true \
+  --rpc-ws-host="0.0.0.0" \
+  --host-allowlist=teku-node,127.0.0.1,localhost \
+  --engine-host-allowlist=teku-node,127.0.0.1,localhost \
+  --engine-rpc-enabled \
+  --engine-jwt-secret=/var/lib/besu/jwtsecret.hex
+
+docker run --network eth-node-network \
+  -p 5051:5051 \
+  -p 5052:5052 \
+  -p 9000:9000 \
+  -v /home/lsilveira/Projects/eth-node/token/jwtsecret.hex:/var/lib/teku/jwtsecret.hex \
+  --name teku-node \
+  --entrypoint teku \
+  consensys/teku:latest \
+  --ee-endpoint=http://besu-node:8551 \
+  --ee-jwt-secret-file=/var/lib/teku/jwtsecret.hex \
+  --metrics-enabled=true \
+  --rest-api-enabled=true
+
+
+
+
+
+------------------------------------------------------------
+
+./besu --sync-mode=X_SNAP \
+          --engine-rpc-enabled=true \
+          --rpc-http-enabled=true \
+          --rpc-http-api=ETH,NET,WEB3 \
+          --data-storage-format=BONSAI \
+          --rpc-http-host='0.0.0.0' \
+          --rpc-ws-enabled=true \
+          --rpc-ws-host='0.0.0.0' \
+          --rpc-http-cors-origins='*' \
+          --host-allowlist="127.0.0.1,localhost" \
+          --engine-host-allowlist="192.168.0.26,127.0.0.1,localhost" \
+          --metrics-enabled \
+          --engine-jwt-secret=jwtsecret.hex
+          
+./besu --sync-mode=X_SNAP \
+  --rpc-http-enabled=true \
+  --data-storage-format=BONSAI \
+  --rpc-http-host='0.0.0.0' \
+  --rpc-ws-enabled=true \
+  --rpc-ws-host='0.0.0.0' \
+  --rpc-http-cors-origins='*' \
+  --engine-jwt-enabled=true \
+  --engine-jwt-secret=jwtsecret.hex \
+  --host-allowlist="192.168.0.26,127.0.0.1,localhost" \
+  --engine-host-allowlist="192.168.0.26,127.0.0.1,localhost" \
+  --metrics-enabled
+          
+          
+          
+./teku \
+    --network=mainnet \
+    --ee-endpoint=http://127.0.01:8551 \
+    --ee-jwt-secret-file=jwtsecret.hex \
+    --metrics-enabled=true \
+    --rest-api-enabled=true \
+    --rest-api-cors-origins='*' \
+    --checkpoint-sync-url=https://beaconstate.ethstaker.cc
+    
+    
+./teku \
+  --network=mainnet \
+  --ee-endpoint=http://127.0.0.1:8551 \
+  --ee-jwt-secret-file=jwtsecret.hex \
+  --metrics-enabled=true \
+  --rest-api-enabled=true \
+  --rest-api-cors-origins='*' \
+  --checkpoint-sync-url=https://beaconstate.ethstaker.cc
+  
+  
+  
+curl -X POST http://localhost:8551 \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer 60b84cc9d42d0c524e2d92da3c81ff6fca809b95a754a15860e11ae9e8c02304" \
+-d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
+
+curl -d '{"id":0,"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["latest",false]}' \
+  -H "Content-Type: application/json" http://localhost:8545
+  
+  curl -d '{"id":0,"jsonrpc":"2.0","method":"eth_blockNumber","params":["latest",false]}' \
+  -H "Content-Type: application/json" -H "Authorization: Bearer 60b84cc9d42d0c524e2d92da3c81ff6fca809b95a754a15860e11ae9e8c02304" http://localhost:8545
+  
+  
+  
+  curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":67}' http://localhost:8545
+  
+  
+  
+  
+exec besu --sync-mode=X_SNAP \
+          --rpc-http-enabled=true \
+          --rpc-http-api=ETH,NET,WEB3,TXPOOL,DEBUG,TRACE \
+          --data-storage-format=BONSAI \
+          --rpc-http-host='0.0.0.0' \
+          --rpc-ws-enabled=true \
+          --rpc-ws-host='0.0.0.0' \
+          --rpc-http-port=8545 \
+          --rpc-http-cors-origins='*' \
+          --rpc-http-authentication-enabled=true \
+          --host-allowlist="${CONTAINER_IP},127.0.0.1,localhost,eth-node-teku" \
+          --engine-host-allowlist="${CONTAINER_IP},127.0.0.1,localhost,eth-node-teku" \
+          --p2p-host=0.0.0.0 \
+          --p2p-port=30303 \
+          --nat-method=DOCKER \
+          --metrics-enabled \
+          --metrics-host=0.0.0.0 \
+          --engine-rpc-port=8551 \
+          --engine-jwt-secret=/var/lib/besu/jwt/jwtsecret.hex
+          
+          
+          
+exec /opt/teku/bin/teku \
+    --network=mainnet \
+    --ee-endpoint=http://eth-node-besu:8551 \
+    --ee-jwt-secret-file=/var/lib/teku/jwt/jwtsecret.hex \
+    --metrics-enabled=true \
+    --rest-api-enabled=true \
+    --rest-api-cors-origins='*' \
+    --checkpoint-sync-url=https://beaconstate.ethstaker.cc \
+    --beacon-liveness-tracking-enabled=true \
+    --p2p-port=9000 \
+    --p2p-nat-method=NONE \
+    --p2p-peer-lower-bound=80 \
+    --p2p-discovery-enabled=true
+    
+    
+    
+    
+    
+exec besu --sync-mode=X_SNAP \
+          --rpc-http-enabled=true \
+          --data-storage-format=BONSAI \
+          --rpc-http-enabled=true \
+          --rpc-http-api=ADMIN,MINER,ETH,NET,WEB3,TXPOOL,DEBUG,TRACE \
+          --rpc-http-host='0.0.0.0' \
+          --rpc-ws-enabled=true \
+          --rpc-ws-host='0.0.0.0' \
+          --rpc-http-cors-origins='*' \
+          --p2p-enabled=true \
+          --host-allowlist="${CONTAINER_IP},127.0.0.1,localhost,eth-node-teku" \
+          --engine-host-allowlist="${CONTAINER_IP},127.0.0.1,localhost,eth-node-teku" \
+          --nat-method=DOCKER \
+          --metrics-enabled \
+          --engine-jwt-secret=/var/lib/besu/jwt/jwtsecret.hex
+          
+          
+          
+exec /opt/teku/bin/teku \
+    --network=mainnet \
+    --ee-endpoint=http://eth-node-besu:8545 \
+    --ee-jwt-secret-file=/var/lib/teku/jwt/jwtsecret.hex \
+    --metrics-enabled=true \
+    --rest-api-enabled=true \
+    --rest-api-cors-origins='*' \
+    --checkpoint-sync-url=https://beaconstate.ethstaker.cc \
+    --beacon-liveness-tracking-enabled=true

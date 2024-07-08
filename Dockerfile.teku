@@ -1,0 +1,33 @@
+# Use an intermediary image to set permissions
+FROM alpine:latest AS intermediary
+
+COPY entrypoint-teku.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+
+# Use the official Teku image as the base image
+FROM consensys/teku:latest
+
+# Switch to root user to perform system updates
+USER root
+
+# Update package lists and install necessary packages
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    ncat \
+    nano \
+    # Add more packages as needed
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the jwtsecret.hex file to the appropriate location
+COPY token/jwtsecret.hex /var/lib/teku/jwt/jwtsecret.hex
+
+# Copy the entrypoint script from the intermediary stage
+COPY --from=intermediary /entrypoint.sh /entrypoint.sh
+
+# Expose the necessary ports
+EXPOSE 5051 5052 9000 8551
+
+# Set the entrypoint script as the entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
